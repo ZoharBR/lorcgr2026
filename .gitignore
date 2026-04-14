@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+backend/venv/
+frontend/node_modules/
+frontend/.next/
+*.log
+*.sql.gz
+*.tar.gz
+_zscripts/backups/
+.env
+db.sqlite3
+*.pid
+frontend.old/
+*.bak
+*.bak2
