@@ -31,6 +31,9 @@ if ALLOWED_HOSTS_ENV:
 else:
     ALLOWED_HOSTS = []
 
+# Adicionar testserver para testes Django
+ALLOWED_HOSTS.append('testserver')
+
 # ===========================================
 # APLICACOES
 # ===========================================
