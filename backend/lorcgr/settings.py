@@ -1,34 +1,38 @@
 """
-Configurações do Django - LOR-CGR 2026
-======================================
-Seguro, flexível e gerenciável via Admin
+Configuracoes do Django - LOR-CGR 2026
+Todas as configuracoes sensiveis vem do .env
 """
 
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Carregar variáveis de ambiente do arquivo .env
-load_dotenv(BASE_DIR / '.env' if 'BASE_DIR' in dir() else Path(__file__).resolve().parent.parent / '.env')
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ===========================================
-# SEGURANÇA BÁSICA
-# ===========================================
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'lorcgr-secret-key-2026-change-in-production')
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
-
-# ALLOWED_HOSTS - Pode ser modificado via Admin (SystemSettings)
-# Formato: IP ou domínios separados por vírgula no .env
-ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', '*')
-if ALLOWED_HOSTS_ENV == '*':
-    ALLOWED_HOSTS = ['*']
+# Carregar variaveis de ambiente do .env existente
+env_path = BASE_DIR / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
 else:
-    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
+    load_dotenv()
 
 # ===========================================
-# APLICAÇÕES INSTALADAS
+# SEGURANCA - TUDO DO .ENV
+# ===========================================
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("DJANGO_SECRET_KEY nao definida no .env")
+
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
+
+ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', '')
+if ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',') if host.strip()]
+else:
+    ALLOWED_HOSTS = []
+
+# ===========================================
+# APLICACOES
 # ===========================================
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -39,7 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'channels',
     'api',
     'equipments',
 ]
@@ -59,9 +62,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'lorcgr.urls'
 
-# ===========================================
-# TEMPLATES
-# ===========================================
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
     'DIRS': [],
@@ -79,21 +79,25 @@ TEMPLATES = [{
 WSGI_APPLICATION = 'lorcgr.wsgi.application'
 
 # ===========================================
-# BANCO DE DADOS - Lendo do .env
+# BANCO DE DADOS - TUDO DO .ENV
 # ===========================================
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+if not DB_PASSWORD:
+    raise ValueError("DB_PASSWORD nao definida no .env")
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DB_NAME', 'lorcgr'),
         'USER': os.environ.get('DB_USER', 'lorcgr'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'Lor#Cgr#2026'),
+        'PASSWORD': DB_PASSWORD,
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
 # ===========================================
-# ARQUIVOS ESTÁTICOS
+# ARQUIVOS ESTATICOS
 # ===========================================
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -101,7 +105,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ===========================================
-# LOCALIZAÇÃO
+# LOCALIZACAO
 # ===========================================
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
@@ -109,32 +113,21 @@ USE_I18N = True
 USE_TZ = True
 
 # ===========================================
-# CORS - Configuração de Segurança
+# CORS - SOMENTE ORIGENS EXPLICITAS DO .ENV
 # ===========================================
-# Opção 1: Ler do .env (recomendado para produção)
 CORS_ENV = os.environ.get('CORS_ALLOWED_ORIGINS', '')
 
 if CORS_ENV:
-    # Formato: http://localhost:3000,http://45.71.242.131:3000
     CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ENV.split(',') if origin.strip()]
     CORS_ALLOW_ALL_ORIGINS = False
 else:
-    # Desenvolvimento: permitir todos (alterar via Admin em produção!)
-    CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOWED_ORIGINS = []
+    CORS_ALLOW_ALL_ORIGINS = False
 
-# Cors settings adicionais
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
+    'accept', 'accept-encoding', 'authorization', 'content-type',
+    'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
 ]
 
 # ===========================================
@@ -148,11 +141,22 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour'
+    }
 }
 
 # ===========================================
-# LOGGING (Para debug e monitoramento)
+# LOGGING - Caminho corrigido para /opt/lorcgr/logs/
 # ===========================================
+LOG_DIR = BASE_DIR.parent / 'logs'
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -167,9 +171,16 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'django.log',
+            'maxBytes': 10485760,
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
     },
     'root': {
-        'handlers': ['console'],
+        'handlers': ['console', 'file'],
         'level': 'INFO',
     },
 }
