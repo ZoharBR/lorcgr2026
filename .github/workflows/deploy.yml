@@ -1,0 +1,36 @@
+name: LOR-CGR Deploy Automático
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch: # Permite disparar manualmente
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # Roda no seu servidor Ubuntu
+    
+    steps:
+    - name: 📥 Checkout do código
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: 🔨 Deploy Frontend & Backend
+      run: |
+        cd /opt/lorcgr
+        chmod +x deploy.sh
+        ./deploy.sh
+    
+    - name: ✅ Verificar Status
+      run: |
+        echo "=== STATUS PÓS-DEPLOY ==="
+        systemctl is-active lorcgr-frontend.service
+        systemctl is-active lorcgr-api.service
+        curl -s -o /dev/null -w "Frontend HTTP: %{http_code}\n" http://localhost:3000
+        
+    - name: 🧹 Limpar builds antigos (manter só últimos 3)
+      run: |
+        cd /opt/lorcgr/_zscripts/backups
+        ls -dt pre-deploy_* | tail -n +4 | xargs rm -rf 2>/dev/null || true
+        echo "✅ Backups antigos removidos"
+

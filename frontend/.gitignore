@@ -1,0 +1,70 @@
+<<<<<<< HEAD
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+local-*
+.claude
+.z-ai-config
+dev.log
+test
+prompt
+
+server.log
+# Skills directory
+/skills/download/
+=======
+__pycache__/
+*.pyc
+*.pyo
+backend/venv/
+frontend/node_modules/
+frontend/.next/
+*.log
+*.sql.gz
+*.tar.gz
+_zscripts/backups/
+.env
+db.sqlite3
+*.pid
+frontend.old/
+*.bak
+*.bak2
+>>>>>>> a94b41c69245ddac00e76273bd5d825a4c31b313

@@ -11,11 +11,13 @@ from .views_backup import (
     restart_nextjs,
     service_status
 )
+from .views_monitoring import EquipmentMonitoringViewSet
 
 router = DefaultRouter()
 router.register(r'services', ServiceConfigViewSet, basename='services')
 router.register(r'settings', SystemSettingsViewSet, basename='settings')
 router.register(r'security-configs', SecurityConfigViewSet, basename='security-configs')
+router.register(r'monitoring', EquipmentMonitoringViewSet, basename='monitoring')
 
 urlpatterns = [
     path('health/', health),
@@ -30,5 +32,8 @@ urlpatterns = [
     path('restart/django/', restart_django, name='restart-django'),
     path('restart/nextjs/', restart_nextjs, name='restart-nextjs'),
     path('service/status/', service_status, name='service-status'),
+    # Monitoring APIs (rotas explícitas)
+    path('monitoring/all-status/', EquipmentMonitoringViewSet.as_view({'get': 'all_status'}), name='monitoring-all-status'),
+    path('monitoring/summary/', EquipmentMonitoringViewSet.as_view({'get': 'summary'}), name='monitoring-summary'),
     path('', include(router.urls)),
 ]

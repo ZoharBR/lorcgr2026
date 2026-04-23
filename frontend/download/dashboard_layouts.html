@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tipos de Layout - Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background: #0f0f1a; 
+            color: white;
+            padding: 20px;
+        }
+        h1 { text-align: center; margin-bottom: 30px; color: #8B5CF6; }
+        h2 { color: #10B981; margin: 20px 0 15px; font-size: 18px; }
+        .container { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+        .layout-box { 
+            background: #1a1a2e; 
+            border-radius: 12px; 
+            padding: 20px; 
+            width: 600px;
+            border: 2px solid #333;
+        }
+        .layout-title { 
+            font-size: 20px; 
+            font-weight: bold; 
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #8B5CF6;
+        }
+        
+        /* Grid Layout */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            height: 350px;
+        }
+        .grid-item {
+            background: linear-gradient(135deg, #1e3a5f 0%, #1a1a2e 100%);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+        .grid-item.tall { grid-row: span 2; }
+        .grid-item.wide { grid-column: span 2; }
+        
+        /* Free Layout */
+        .free-container {
+            position: relative;
+            height: 350px;
+            background: rgba(30,30,50,0.5);
+            border-radius: 8px;
+        }
+        .free-item {
+            position: absolute;
+            background: linear-gradient(135deg, #1e3a5f 0%, #1a1a2e 100%);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #333;
+        }
+        
+        /* Widget Styles */
+        .widget-title { font-size: 11px; color: #888; margin-bottom: 8px; }
+        .widget-value { font-size: 24px; font-weight: bold; }
+        .widget-value.green { color: #10B981; }
+        .widget-value.red { color: #EF4444; }
+        .widget-value.blue { color: #3B82F6; }
+        .widget-value.yellow { color: #F59E0B; }
+        .widget-value.purple { color: #8B5CF6; }
+        .widget-value.cyan { color: #06B6D4; }
+        
+        .mini-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 40px;
+            margin-top: 10px;
+        }
+        .mini-bar {
+            width: 8px;
+            background: #8B5CF6;
+            border-radius: 2px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-online { background: #10B981; }
+        .status-offline { background: #EF4444; }
+        
+        .desc { 
+            background: #252540; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .desc strong { color: #10B981; }
+        .pros { color: #10B981; }
+        .cons { color: #EF4444; }
+        
+        /* Widget Types */
+        .widget-types {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 40px;
+            padding: 20px;
+            background: #1a1a2e;
+            border-radius: 12px;
+        }
+        .widget-type {
+            background: #252540;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+        .widget-type:hover {
+            border-color: #8B5CF6;
+        }
+        .widget-icon { font-size: 30px; margin-bottom: 10px; }
+        .widget-name { font-weight: bold; margin-bottom: 5px; }
+        .widget-desc { font-size: 11px; color: #888; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Editável - Opções de Layout</h1>
+    
+    <div class="container">
+        <!-- GRID LAYOUT -->
+        <div class="layout-box">
+            <div class="layout-title">📊 LAYOUT EM GRADE (Grid)</div>
+            <div class="grid-container">
+                <div class="grid-item">
+                    <div class="widget-title">Total Dispositivos</div>
+                    <div class="widget-value blue">24</div>
+                </div>
+                <div class="grid-item">
+                    <div class="widget-title">Online</div>
+                    <div class="widget-value green">18</div>
+                </div>
+                <div class="grid-item">
+                    <div class="widget-title">Offline</div>
+                    <div class="widget-value red">6</div>
+                </div>
+                <div class="grid-item tall">
+                    <div class="widget-title">Status da Rede</div>
+                    <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+                        <svg width="100" height="100" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#333" stroke-width="10"/>
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#10B981" stroke-width="10" 
+                                    stroke-dasharray="188" stroke-dashoffset="47" transform="rotate(-90 50 50)"/>
+                            <text x="50" y="55" text-anchor="middle" fill="white" font-size="18">75%</text>
+                        </svg>
+                    </div>
+                </div>
+                <div class="grid-item wide">
+                    <div class="widget-title">PPPoE por BRAS</div>
+                    <div class="mini-chart">
+                        <div class="mini-bar" style="height: 35px;"></div>
+                        <div class="mini-bar" style="height: 28px;"></div>
+                        <div class="mini-bar" style="height: 40px;"></div>
+                        <div class="mini-bar" style="height: 22px;"></div>
+                        <div class="mini-bar" style="height: 30px;"></div>
+                        <div class="mini-bar" style="height: 18px;"></div>
+                        <div class="mini-bar" style="height: 25px;"></div>
+                        <div class="mini-bar" style="height: 33px;"></div>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <div class="widget-title">CPU</div>
+                    <div class="widget-value yellow">45%</div>
+                </div>
+                <div class="grid-item">
+                    <div class="widget-title">RAM</div>
+                    <div class="widget-value cyan">62%</div>
+                </div>
+                <div class="grid-item">
+                    <div class="widget-title">Disco</div>
+                    <div class="widget-value purple">38%</div>
+                </div>
+            </div>
+            <div class="desc">
+                <strong>Como funciona:</strong> Widgets se encaixam em uma grade fixa.<br>
+                <span class="pros">✅ Vantagens:</span> Organizado, responsivo, fácil de usar.<br>
+                <span class="cons">⚠️ Limitação:</span> Tamanhos predefinidos (1x1, 2x1, 2x2).
+            </div>
+        </div>
+        
+        <!-- FREE LAYOUT -->
+        <div class="layout-box">
+            <div class="layout-title">🎨 LAYOUT LIVRE (Free)</div>
+            <div class="free-container">
+                <div class="free-item" style="left: 10px; top: 10px; width: 150px;">
+                    <div class="widget-title">Dispositivos</div>
+                    <div class="widget-value blue">24</div>
+                </div>
+                <div class="free-item" style="left: 180px; top: 30px; width: 200px; height: 150px;">
+                    <div class="widget-title">BRAS-01 - Temperatura</div>
+                    <div class="widget-value cyan" style="font-size: 36px;">32°C</div>
+                    <div style="margin-top: 10px; background: #333; height: 8px; border-radius: 4px;">
+                        <div style="width: 40%; background: #06B6D4; height: 100%; border-radius: 4px;"></div>
+                    </div>
+                    <div style="font-size: 10px; color: #888; margin-top: 5px;">Normal (0-70°C)</div>
+                </div>
+                <div class="free-item" style="left: 400px; top: 10px; width: 170px; height: 120px;">
+                    <div class="widget-title">RX Power - Ge0/0/0</div>
+                    <div class="widget-value green">-8.5 dBm</div>
+                    <div style="font-size: 11px; color: #888; margin-top: 5px;">
+                        <span class="status-indicator status-online"></span>Normal
+                    </div>
+                </div>
+                <div class="free-item" style="left: 20px; top: 120px; width: 140px; height: 100px;">
+                    <div class="widget-title">Alertas</div>
+                    <div class="widget-value red">3</div>
+                    <div style="font-size: 11px; color: #888; margin-top: 5px;">Críticos ativos</div>
+                </div>
+                <div class="free-item" style="left: 30px; top: 240px; width: 280px; height: 90px;">
+                    <div class="widget-title">PPPoE - Últimas 24h</div>
+                    <div class="mini-chart">
+                        <div class="mini-bar" style="height: 35px;"></div>
+                        <div class="mini-bar" style="height: 28px;"></div>
+                        <div class="mini-bar" style="height: 40px;"></div>
+                        <div class="mini-bar" style="height: 22px;"></div>
+                        <div class="mini-bar" style="height: 30px;"></div>
+                        <div class="mini-bar" style="height: 18px;"></div>
+                        <div class="mini-bar" style="height: 25px;"></div>
+                    </div>
+                </div>
+                <div class="free-item" style="left: 400px; top: 150px; width: 160px; height: 180px;">
+                    <div class="widget-title">Servidor</div>
+                    <div style="margin-top: 10px;">
+                        <div style="font-size: 12px;">CPU: <span class="widget-value yellow" style="font-size: 14px;">45%</span></div>
+                        <div style="font-size: 12px; margin-top: 5px;">RAM: <span class="widget-value cyan" style="font-size: 14px;">62%</span></div>
+                        <div style="font-size: 12px; margin-top: 5px;">Disco: <span class="widget-value purple" style="font-size: 14px;">38%</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="desc">
+                <strong>Como funciona:</strong> Widgets podem ser colocados em qualquer posição.<br>
+                <span class="pros">✅ Vantagens:</span> Liberdade total, tamanhos variados.<br>
+                <span class="cons">⚠️ Limitação:</span> Pode ficar desorganizado, menos responsivo.
+            </div>
+        </div>
+    </div>
+    
+    <!-- WIDGET TYPES -->
+    <h2 style="text-align: center; margin-top: 50px; font-size: 24px;">Widgets Disponíveis</h2>
+    <div class="widget-types">
+        <div class="widget-type">
+            <div class="widget-icon">📊</div>
+            <div class="widget-name">Card de Status</div>
+            <div class="widget-desc">Mostra um valor simples com título (ex: Total de Dispositivos)</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">📈</div>
+            <div class="widget-name">Gráfico de Barras</div>
+            <div class="widget-desc">PPPoE por BRAS, tráfego, contagens</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">🥧</div>
+            <div class="widget-name">Gráfico de Pizza</div>
+            <div class="widget-desc">Status online/offline, distribuição</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">🎯</div>
+            <div class="widget-name">Gauge/Semi-círculo</div>
+            <div class="widget-desc">CPU, RAM, Disco, percentuais</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">🌡️</div>
+            <div class="widget-name">DDM Temperatura</div>
+            <div class="widget-desc">Temperatura de transceptor específico</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">⚡</div>
+            <div class="widget-name">DDM Power</div>
+            <div class="widget-desc">RX/TX Power de interface óptica</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">🔌</div>
+            <div class="widget-name">Status Dispositivo</div>
+            <div class="widget-desc">Status de um equipamento específico</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">📉</div>
+            <div class="widget-name">Gráfico de Linha</div>
+            <div class="widget-desc">Histórico temporal de métricas</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">🚨</div>
+            <div class="widget-name">Lista de Alertas</div>
+            <div class="widget-desc">Alertas ativos do sistema</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">📋</div>
+            <div class="widget-name">Tabela de Dados</div>
+            <div class="widget-desc">Lista de interfaces, dispositivos</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">🗺️</div>
+            <div class="widget-name">Mapa de Rede</div>
+            <div class="widget-desc">Topologia visual (futuro)</div>
+        </div>
+        <div class="widget-type">
+            <div class="widget-icon">🕐</div>
+            <div class="widget-name">Relógio/Horário</div>
+            <div class="widget-desc">Data e hora atual do sistema</div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px; padding: 20px; background: #252540; border-radius: 12px;">
+        <h2 style="color: #8B5CF6; margin-bottom: 15px;">💡 Recomendação</h2>
+        <p style="font-size: 16px; line-height: 1.8;">
+            Para o LOR CGR, recomendo o <strong style="color: #10B981;">Layout em Grade (Grid)</strong> pois é:<br>
+            ✅ Mais organizado e profissional<br>
+            ✅ Responsivo em diferentes telas<br>
+            ✅ Fácil de usar com drag-and-drop<br>
+            ✅ Permite redimensionar widgets (1x1, 2x1, 2x2)
+        </p>
+    </div>
+</body>
+</html>

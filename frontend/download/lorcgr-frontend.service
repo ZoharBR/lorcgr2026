@@ -1,0 +1,21 @@
+[Unit]
+Description=LOR-CGR Next.js Frontend
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/lorcgr-frontend
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=0.0.0.0
+ExecStart=/usr/bin/node /opt/lorcgr-frontend/server.js
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=lorcgr-frontend
+
+[Install]
+WantedBy=multi-user.target

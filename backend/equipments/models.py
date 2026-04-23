@@ -140,3 +140,6 @@ class SyncLog(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+
+# Importar modelos de monitoramento (no final do arquivo)
+from .models_monitoring import EquipmentStatus, PingHistory

@@ -1,0 +1,200 @@
+                (d.hostname || '').toLowerCase().includes(searchTerm) ||
+                (d.ip_address || '').includes(searchTerm) ||
+                (d.vendor || '').toLowerCase().includes(searchTerm)
+            );
+
+            filtered.forEach(device => {
+                const tr = document.createElement('tr');
+                const isOnline = device.is_online;
+                tr.innerHTML = `
+                    <td><span class="badge ${isOnline ? 'badge-success' : 'badge-danger'}">${isOnline ? 'Online' : 'Offline'}</span></td>
+                    <td><strong>${device.hostname || '-'}</strong></td>
+                    <td>${device.ip_address || '-'}</td>
+                    <td>${device.vendor || '-'}</td>
+                    <td><span class="badge badge-info">${device.is_bras ? 'BRAS' : device.device_type || 'Router'}</span></td>
+                    <td>${device.protocol || 'ssh'}</td>
+                    <td>
+                        <button class="action-btn" onclick="openTerminal(${device.id})" title="Terminal">
+                            <i class="fas fa-terminal"></i>
+                        </button>
+                        <button class="action-btn" onclick="runBackup(${device.id})" title="Backup">
+                            <i class="fas fa-hdd"></i>
+                        </button>
+                        <button class="action-btn" onclick="editDevice(${device.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn" onclick="deleteDevice(${device.id})" title="Excluir" style="color: var(--danger);">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update inventory stats
+            document.getElementById('inv-total').textContent = devices.length;
+            document.getElementById('inv-online').textContent = devices.filter(d => d.is_online).length;
+            document.getElementById('inv-offline').textContent = devices.filter(d => !d.is_online).length;
+            document.getElementById('inv-bras').textContent = devices.filter(d => d.is_bras).length;
+        }
+
+        // Filter Devices
+        function filterDevices() {
+            renderDevices();
+        }
+
+        // Update Stats
+        function updateStats() {
+            document.getElementById('stat-devices').textContent = devices.length;
+            document.getElementById('stat-online').textContent = devices.filter(d => d.is_online).length;
+            document.getElementById('stat-offline').textContent = devices.filter(d => !d.is_online).length;
+            document.getElementById('stat-bras').textContent = devices.filter(d => d.is_bras).length;
+
+            // Dashboard table
+            const tbody = document.querySelector('#devices-table-dashboard tbody');
+            tbody.innerHTML = '';
+            devices.slice(0, 5).forEach(device => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${device.hostname || '-'}</strong></td>
+                    <td>${device.ip_address || '-'}</td>
+                    <td><span class="badge badge-info">${device.is_bras ? 'BRAS' : device.device_type || 'Router'}</span></td>
+                    <td><span class="badge ${device.is_online ? 'badge-success' : 'badge-danger'}">${device.is_online ? 'Online' : 'Offline'}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Load Backups
+        async function loadBackups() {
+            try {
+                const res = await fetch(`${API_BASE}/backups/`);
+                const data = await res.json();
+                backups = data.backups || [];
+                renderBackups();
+                updateBackupStats();
+                updateBackupFilter();
+            } catch (err) {
+                console.error('Erro ao carregar backups:', err);
+            }
+        }
+
+        // Render Backups
+        function renderBackups() {
+            const tbody = document.querySelector('#backups-table tbody');
+            tbody.innerHTML = '';
+            
+            const filter = document.getElementById('backup-filter')?.value || 'all';
+            const filtered = filter === 'all' ? backups : backups.filter(b => b.device_name === filter);
+
+            filtered.forEach(backup => {
+                const tr = document.createElement('tr');
+                const size = formatSize(backup.size_bytes);
+                const date = formatDate(backup.created_at);
+                tr.innerHTML = `
+                    <td><span class="badge ${backup.status === 'success' ? 'badge-success' : 'badge-danger'}">${backup.status === 'success' ? 'Sucesso' : 'Falhou'}</span></td>
+                    <td><strong>${backup.filename}</strong></td>
+                    <td>${backup.device_name}</td>
+                    <td>${date}</td>
+                    <td>${size}</td>
+                    <td>
+                        <button class="action-btn" onclick="viewBackup(${backup.id})" title="Visualizar">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn" onclick="downloadBackupById(${backup.id})" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="action-btn" onclick="deleteBackup(${backup.id})" title="Excluir" style="color: var(--danger);">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Update Backup Stats
+        function updateBackupStats() {
+            const total = backups.length;
+            const success = backups.filter(b => b.status === 'success').length;
+            const failed = backups.filter(b => b.status === 'failed').length;
+            const totalSize = backups.reduce((acc, b) => acc + (b.size_bytes || 0), 0);
+
+            document.getElementById('backups-count').textContent = total;
+            document.getElementById('backups-total').textContent = total;
+            document.getElementById('backups-success').textContent = success;
+            document.getElementById('backups-failed').textContent = failed;
+            document.getElementById('backups-size').textContent = formatSize(totalSize);
+        }
+
+        // Update Backup Filter
+        function updateBackupFilter() {
+            const select = document.getElementById('backup-filter');
+            const deviceNames = [...new Set(backups.map(b => b.device_name))];
+            select.innerHTML = '<option value="all">Todos os dispositivos</option>';
+            deviceNames.forEach(name => {
+                select.innerHTML += `<option value="${name}">${name}</option>`;
+            });
+        }
+
+        // Filter Backups
+        function filterBackups() {
+            renderBackups();
+        }
+
+        // Load Audit Logs
+        async function loadAuditLogs() {
+            try {
+                // Load audit logs
+                const logsRes = await fetch(`${API_BASE}/audit/logs/`);
+                const logsData = await logsRes.json();
+                auditLogs = logsData.logs || [];
+                renderAuditLogs();
+
+                // Load terminal sessions
+                const sessionsRes = await fetch(`${API_BASE}/terminal/sessions/`);
+                const sessionsData = await sessionsRes.json();
+                sessions = sessionsData.sessions || [];
+                renderSessions();
+            } catch (err) {
+                console.error('Erro ao carregar auditoria:', err);
+            }
+        }
+
+        // Render Audit Logs
+        function renderAuditLogs() {
+            const tbody = document.querySelector('#audit-table tbody');
+            const empty = document.getElementById('audit-empty');
+            
+            if (auditLogs.length === 0) {
+                tbody.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            
+            empty.classList.add('hidden');
+            tbody.innerHTML = '';
+            
+            auditLogs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge badge-info">${log.action || 'ACTION'}</span></td>
+                    <td>${log.details || '-'}</td>
+                    <td>${log.user || 'system'}</td>
+                    <td>${log.device || '-'}</td>
+                    <td>${formatDate(log.timestamp)}</td>
+                    <td>
+                        <button class="action-btn" onclick="viewAuditLog(${log.id})" title="Visualizar">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Render Sessions
+        function renderSessions() {
+            const tbody = document.querySelector('#sessions-table tbody');
+            const empty = document.getElementById('sessions-empty');
+            

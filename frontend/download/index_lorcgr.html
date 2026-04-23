@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOR-CGR - Sistema de Gerenciamento de Rede</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #22c55e;
+            --warning: #eab308;
+            --danger: #ef4444;
+            --border: #475569;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--bg-secondary); height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid var(--border); overflow-y: auto; }
+        .main-content { margin-left: 260px; padding: 20px; min-height: 100vh; }
+        .nav-item { padding: 12px 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; border-left: 3px solid transparent; }
+        .nav-item:hover { background: var(--bg-tertiary); }
+        .nav-item.active { background: var(--bg-tertiary); border-left-color: var(--accent); color: var(--accent); }
+        .card { background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+        .card-body { padding: 20px; }
+        .btn { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s; border: none; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); }
+        .btn-danger { background: var(--danger); color: white; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .badge-success { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .badge-danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-warning { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+        .badge-info { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .input { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text-primary); width: 100%; }
+        .input:focus { outline: none; border-color: var(--accent); }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        .table th { color: var(--text-secondary); font-weight: 500; }
+        .table tr:hover { background: var(--bg-tertiary); }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: var(--bg-secondary); border-radius: 12px; max-width: 90vw; max-height: 90vh; overflow: auto; border: 1px solid var(--border); }
+        .modal-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+        .hidden { display: none !important; }
+        .stat-card { background: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border); }
+        .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-label { color: var(--text-secondary); font-size: 14px; }
+        .external-links { padding: 12px 20px; border-top: 1px solid var(--border); margin-top: auto; }
+        .external-link { display: flex; align-items: center; gap: 12px; padding: 10px 0; color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .external-link:hover { color: var(--accent); }
+        .terminal-modal { width: 90vw; height: 85vh; }
+        .terminal-container { background: #0d1117; height: 70vh; border-radius: 8px; overflow: hidden; }
+        #terminal { width: 100%; height: 100%; }
+        .tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; }
+        .tab.active { border-bottom-color: var(--accent); color: var(--accent); }
+        .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+        .progress-bar { height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+        .action-btn { padding: 8px; border-radius: 6px; cursor: pointer; border: none; background: transparent; color: var(--text-secondary); transition: all 0.2s; }
+        .action-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 40px; height: 40px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-network-wired text-white"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 700; font-size: 18px;">LOR CGR</div>
+                    <div style="color: var(--text-secondary); font-size: 12px;">v2.0.0</div>
+                </div>
+            </div>
+        </div>
+        
+        <nav style="padding: 16px 0;">
+            <div class="nav-item active" onclick="showSection('dashboard')">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </div>
+            <div class="nav-item" onclick="showSection('inventory')">
+                <i class="fas fa-server"></i> Inventário
+            </div>
+            <div class="nav-item" onclick="showSection('backups')">
+                <i class="fas fa-hdd"></i> Backups
+            </div>
+            <div class="nav-item" onclick="showSection('audit')">
+                <i class="fas fa-file-alt"></i> Auditoria
+            </div>
+            <div class="nav-item" onclick="openTerminalModal()">
+                <i class="fas fa-terminal"></i> Terminal SSH
+            </div>
+        </nav>
+
+        <div class="external-links">
+            <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 12px; text-transform: uppercase;">Integrações</div>
+            <a href="http://45.71.242.131:8081/" target="_blank" class="external-link">
+                <i class="fas fa-chart-line"></i> LibreNMS
+            </a>
+            <a href="http://45.71.242.131:9100/" target="_blank" class="external-link">
+                <i class="fas fa-sitemap"></i> phpIPAM
+            </a>
+            <a href="http://45.71.242.131:3000/" target="_blank" class="external-link">
+                <i class="fas fa-chart-bar"></i> Grafana
+            </a>
+        </div>
+
+        <div style="padding: 20px; border-top: 1px solid var(--border); margin-top: auto;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 40px; height: 40px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 500;">Leonardo</div>
+                    <div style="color: var(--text-secondary); font-size: 12px;">Administrador</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="section-dashboard">
+            <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">Dashboard NOC</h1>
+            <p style="color: var(--text-secondary); margin-bottom: 24px;">Visão geral da rede</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-devices">0</div>
+                    <div class="stat-label">Total de Dispositivos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--success);" id="stat-online">0</div>
+                    <div class="stat-label">Online</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--danger);" id="stat-offline">0</div>
+                    <div class="stat-label">Offline</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--accent);" id="stat-bras">0</div>
+                    <div class="stat-label">BRAS</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-weight: 600;">Dispositivos Recentes</h3>
+                    <button class="btn btn-secondary" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+                <div class="card-body">
+                    <table class="table" id="devices-table-dashboard">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>IP</th>
+                                <th>Tipo</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div id="section-inventory" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div>
+                    <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">Inventário</h1>
+                    <p style="color: var(--text-secondary);">Gerenciamento de equipamentos de rede</p>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-secondary" onclick="loadDevices()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                    <button class="btn btn-primary" onclick="openDeviceModal()">
+                        <i class="fas fa-plus"></i> Novo Dispositivo
+                    </button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <div class="stat-card">
+                    <div class="stat-value" id="inv-total">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--success);" id="inv-online">0</div>
+                    <div class="stat-label">Online</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--danger);" id="inv-offline">0</div>
+                    <div class="stat-label">Offline</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--accent);" id="inv-bras">0</div>
+                    <div class="stat-label">BRAS</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <input type="text" class="input" placeholder="Buscar por nome, IP ou vendor..." id="search-devices" onkeyup="filterDevices()" style="max-width: 400px;">
+                </div>
+                <div class="card-body">
+                    <table class="table" id="devices-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Nome</th>
+                                <th>IP</th>
+                                <th>Vendor</th>
+                                <th>Tipo</th>
+                                <th>Protocolo</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backups Section -->
+        <div id="section-backups" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div>
+                    <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">Backups</h1>
+                    <p style="color: var(--text-secondary);">Gerenciamento de configurações (<span id="backups-count">0</span> backups)</p>
+                </div>
+                <button class="btn btn-secondary" onclick="loadBackups()">
+                    <i class="fas fa-sync-alt"></i> Atualizar
+                </button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <div class="stat-card">
+                    <div class="stat-value" id="backups-total">0</div>
+                    <div class="stat-label">Total de Backups</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--success);" id="backups-success">0</div>
+                    <div class="stat-label">Sucesso</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--danger);" id="backups-failed">0</div>
+                    <div class="stat-label">Falhou</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--accent);" id="backups-size">0 KB</div>
+                    <div class="stat-label">Tamanho Total</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-weight: 600;">Histórico de Backups</h3>
+                    <select class="input" style="width: auto;" id="backup-filter" onchange="filterBackups()">
+                        <option value="all">Todos os dispositivos</option>
+                    </select>
+                </div>
+                <div class="card-body">
+                    <table class="table" id="backups-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Arquivo</th>
+                                <th>Dispositivo</th>
+                                <th>Data</th>
+                                <th>Tamanho</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Section -->
+        <div id="section-audit" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div>
+                    <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">Auditoria</h1>
+                    <p style="color: var(--text-secondary);">Logs de atividades e sessões de terminal</p>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-secondary" onclick="loadAuditLogs()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportAuditCSV()">
+                        <i class="fas fa-download"></i> Exportar CSV
+                    </button>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="showAuditTab('logs')">Logs de Atividade</div>
+                <div class="tab" onclick="showAuditTab('sessions')">Sessões de Terminal</div>
+            </div>
+
+            <div id="audit-logs">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table" id="audit-table">
+                            <thead>
+                                <tr>
+                                    <th>Ação</th>
+                                    <th>Detalhes</th>
+                                    <th>Usuário</th>
+                                    <th>Dispositivo</th>
+                                    <th>Data/Hora</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div id="audit-empty" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <i class="fas fa-file-alt" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                            <p>Nenhum log encontrado</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="audit-sessions" class="hidden">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table" id="sessions-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Dispositivo</th>
+                                    <th>Usuário</th>
+                                    <th>Início</th>
+                                    <th>Duração</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div id="sessions-empty" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <i class="fas fa-terminal" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                            <p>Nenhuma sessão registrada</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terminal Modal -->
+    <div id="terminal-modal" class="modal hidden">
+        <div class="modal-content terminal-modal">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-terminal" style="color: var(--accent);"></i>
+                    <h3>Terminal SSH</h3>
+                    <span id="terminal-status" class="badge badge-warning" style="margin-left: 12px;">Desconectado</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="action-btn" onclick="toggleFullscreenTerminal()" title="Tela Cheia">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <button class="action-btn" onclick="closeTerminalModal()" title="Fechar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div style="background: var(--bg-tertiary); padding: 12px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: center;">
+                    <select class="input" style="width: auto; min-width: 200px;" id="terminal-device-select">
+                        <option value="">Selecione um dispositivo...</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="connectTerminal()">
+                        <i class="fas fa-plug"></i> Conectar
+                    </button>
+                    <button class="btn btn-secondary" onclick="disconnectTerminal()" id="btn-disconnect" disabled>
+                        <i class="fas fa-plug"></i> Desconectar
+                    </button>
+                </div>
+                <div class="terminal-container" id="terminal-container">
+                    <div style="padding: 20px; color: var(--text-secondary); font-family: monospace;">
+                        <div style="color: var(--accent); margin-bottom: 16px;">╔═══════════════════════════════════════════════════════════════╗</div>
+                        <div style="color: var(--accent); margin-bottom: 8px;">║  LOR-CGR Terminal SSH - Selecione um dispositivo para conectar  ║</div>
+                        <div style="color: var(--accent); margin-bottom: 16px;">╚═══════════════════════════════════════════════════════════════╝</div>
+                        <div style="color: var(--text-secondary);">Aguardando conexão...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <div id="terminal-info" style="color: var(--text-secondary); font-size: 14px;"></div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" onclick="downloadTerminalLog()">
+                        <i class="fas fa-download"></i> Baixar Log
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Modal -->
+    <div id="device-modal" class="modal hidden">
+        <div class="modal-content" style="width: 600px;">
+            <div class="modal-header">
+                <h3 id="device-modal-title">Novo Dispositivo</h3>
+                <button class="action-btn" onclick="closeDeviceModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="device-form">
+                    <input type="hidden" id="device-id">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Nome/Hostname *</label>
+                            <input type="text" class="input" id="device-name" required>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Endereço IP *</label>
+                            <input type="text" class="input" id="device-ip" required>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Tipo</label>
+                            <select class="input" id="device-type">
+                                <option value="router">Router</option>
+                                <option value="bras">BRAS</option>
+                                <option value="switch">Switch</option>
+                                <option value="olt">OLT</option>
+                                <option value="pppoe">PPPoE Server</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Vendor</label>
+                            <select class="input" id="device-vendor">
+                                <option value="">Selecione...</option>
+                                <option value="Huawei">Huawei</option>
+                                <option value="Mikrotik">Mikrotik</option>
+                                <option value="Cisco">Cisco</option>
+                                <option value="Juniper">Juniper</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+                        <h4 style="margin-bottom: 16px; color: var(--accent);"><i class="fas fa-key"></i> Credenciais SSH</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Usuário SSH</label>
+                                <input type="text" class="input" id="device-ssh-user">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Senha SSH</label>
+                                <input type="password" class="input" id="device-ssh-password">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Porta SSH</label>
+                                <input type="number" class="input" id="device-ssh-port" value="22">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+                        <h4 style="margin-bottom: 16px; color: var(--accent);"><i class="fas fa-cogs"></i> SNMP</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">SNMP Community</label>
+                                <input type="text" class="input" id="device-snmp-community">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Porta SNMP</label>
+                                <input type="number" class="input" id="device-snmp-port" value="161">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+                        <h4 style="margin-bottom: 16px; color: var(--accent);"><i class="fas fa-hdd"></i> Backup</h4>
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="device-backup-enabled" checked>
+                                <span>Backup automático habilitado</span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeviceModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveDevice()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Backup Modal -->
+    <div id="backup-view-modal" class="modal hidden">
+        <div class="modal-content" style="width: 900px; max-height: 80vh;">
+            <div class="modal-header">
+                <h3 id="backup-view-title">Visualizar Backup</h3>
+                <button class="action-btn" onclick="closeBackupViewModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="max-height: 60vh; overflow: auto;">
+                <pre id="backup-content" style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; font-family: monospace; font-size: 12px; white-space: pre-wrap; overflow: auto;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeBackupViewModal()">Fechar</button>
+                <button class="btn btn-primary" onclick="downloadBackup()">
+                    <i class="fas fa-download"></i> Download
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal hidden">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <h3>Confirmar Exclusão</h3>
+            </div>
+            <div class="modal-body">
+                <p id="delete-message">Tem certeza que deseja excluir este item?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE = 'http://45.71.242.131:8000/api';
+        let devices = [];
+        let backups = [];
+        let auditLogs = [];
+        let sessions = [];
+        let terminalWS = null;
+        let terminalLog = [];
+        let deleteCallback = null;
+        let currentBackupId = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDevices();
+            loadBackups();
+            loadAuditLogs();
+        });
+
+        // Show Section
+        function showSection(section) {
+            document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`section-${section}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+        }
+
+        // Load Devices
+        async function loadDevices() {
+            try {
+                const res = await fetch(`${API_BASE}/devices/list/`);
+                devices = await res.json();
+                renderDevices();
+                updateStats();
+                updateTerminalDeviceSelect();
+            } catch (err) {
+                console.error('Erro ao carregar dispositivos:', err);
+            }
+        }
+
+        // Render Devices
+        function renderDevices() {
+            const tbody = document.querySelector('#devices-table tbody');
+            tbody.innerHTML = '';
+            
+            const searchTerm = document.getElementById('search-devices')?.value?.toLowerCase() || '';
+            const filtered = devices.filter(d => 
+                (d.hostname || '').toLowerCase().includes(searchTerm) ||
+                (d.ip_address || '').includes(searchTerm) ||
+                (d.vendor || '').toLowerCase().includes(searchTerm)
+            );
+
+            filtered.forEach(device => {
+                const tr = document.createElement('tr');
+                const isOnline = device.is_online;
+                tr.innerHTML = `
+                    <td><span class="badge ${isOnline ? 'badge-success' : 'badge-danger'}">${isOnline ? 'Online' : 'Offline'}</span></td>
+                    <td><strong>${device.hostname || '-'}</strong></td>
+                    <td>${device.ip_address || '-'}</td>
+                    <td>${device.vendor || '-'}</td>
+                    <td><span class="badge badge-info">${device.is_bras ? 'BRAS' : device.device_type || 'Router'}</span></td>
+                    <td>${device.protocol || 'ssh'}</td>
+                    <td>
+                        <button class="action-btn" onclick="openTerminal(${device.id})" title="Terminal">
+                            <i class="fas fa-terminal"></i>
+                        </button>
+                        <button class="action-btn" onclick="runBackup(${device.id})" title="Backup">
+                            <i class="fas fa-hdd"></i>
+                        </button>
+                        <button class="action-btn" onclick="editDevice(${device.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn" onclick="deleteDevice(${device.id})" title="Excluir" style="color: var(--danger);">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update inventory stats
+            document.getElementById('inv-total').textContent = devices.length;
+            document.getElementById('inv-online').textContent = devices.filter(d => d.is_online).length;
+            document.getElementById('inv-offline').textContent = devices.filter(d => !d.is_online).length;
+            document.getElementById('inv-bras').textContent = devices.filter(d => d.is_bras).length;
+        }
+
+        // Filter Devices
+        function filterDevices() {
+            renderDevices();
+        }
+
+        // Update Stats
+        function updateStats() {
+            document.getElementById('stat-devices').textContent = devices.length;
+            document.getElementById('stat-online').textContent = devices.filter(d => d.is_online).length;
+            document.getElementById('stat-offline').textContent = devices.filter(d => !d.is_online).length;
+            document.getElementById('stat-bras').textContent = devices.filter(d => d.is_bras).length;
+
+            // Dashboard table
+            const tbody = document.querySelector('#devices-table-dashboard tbody');
+            tbody.innerHTML = '';
+            devices.slice(0, 5).forEach(device => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${device.hostname || '-'}</strong></td>
+                    <td>${device.ip_address || '-'}</td>
+                    <td><span class="badge badge-info">${device.is_bras ? 'BRAS' : device.device_type || 'Router'}</span></td>
+                    <td><span class="badge ${device.is_online ? 'badge-success' : 'badge-danger'}">${device.is_online ? 'Online' : 'Offline'}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Load Backups
+        async function loadBackups() {
+            try {
+                const res = await fetch(`${API_BASE}/backups/`);
+                const data = await res.json();
+                backups = data.backups || [];
+                renderBackups();
+                updateBackupStats();
+                updateBackupFilter();
+            } catch (err) {
+                console.error('Erro ao carregar backups:', err);
+            }
+        }
+
+        // Render Backups
+        function renderBackups() {
+            const tbody = document.querySelector('#backups-table tbody');
+            tbody.innerHTML = '';
+            
+            const filter = document.getElementById('backup-filter')?.value || 'all';
+            const filtered = filter === 'all' ? backups : backups.filter(b => b.device_name === filter);
+
+            filtered.forEach(backup => {
+                const tr = document.createElement('tr');
+                const size = formatSize(backup.size_bytes);
+                const date = formatDate(backup.created_at);
+                tr.innerHTML = `
+                    <td><span class="badge ${backup.status === 'success' ? 'badge-success' : 'badge-danger'}">${backup.status === 'success' ? 'Sucesso' : 'Falhou'}</span></td>
+                    <td><strong>${backup.filename}</strong></td>
+                    <td>${backup.device_name}</td>
+                    <td>${date}</td>
+                    <td>${size}</td>
+                    <td>
+                        <button class="action-btn" onclick="viewBackup(${backup.id})" title="Visualizar">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn" onclick="downloadBackupById(${backup.id})" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="action-btn" onclick="deleteBackup(${backup.id})" title="Excluir" style="color: var(--danger);">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Update Backup Stats
+        function updateBackupStats() {
+            const total = backups.length;
+            const success = backups.filter(b => b.status === 'success').length;
+            const failed = backups.filter(b => b.status === 'failed').length;
+            const totalSize = backups.reduce((acc, b) => acc + (b.size_bytes || 0), 0);
+
+            document.getElementById('backups-count').textContent = total;
+            document.getElementById('backups-total').textContent = total;
+            document.getElementById('backups-success').textContent = success;
+            document.getElementById('backups-failed').textContent = failed;
+            document.getElementById('backups-size').textContent = formatSize(totalSize);
+        }
+
+        // Update Backup Filter
+        function updateBackupFilter() {
+            const select = document.getElementById('backup-filter');
+            const deviceNames = [...new Set(backups.map(b => b.device_name))];
+            select.innerHTML = '<option value="all">Todos os dispositivos</option>';
+            deviceNames.forEach(name => {
+                select.innerHTML += `<option value="${name}">${name}</option>`;
+            });
+        }
+
+        // Filter Backups
+        function filterBackups() {
+            renderBackups();
+        }
+
+        // Load Audit Logs
+        async function loadAuditLogs() {
+            try {
+                // Load audit logs
+                const logsRes = await fetch(`${API_BASE}/audit/logs/`);
+                const logsData = await logsRes.json();
+                auditLogs = logsData.logs || [];
+                renderAuditLogs();
+
+                // Load terminal sessions
+                const sessionsRes = await fetch(`${API_BASE}/terminal/sessions/`);
+                const sessionsData = await sessionsRes.json();
+                sessions = sessionsData.sessions || [];
+                renderSessions();
+            } catch (err) {
+                console.error('Erro ao carregar auditoria:', err);
+            }
+        }
+
+        // Render Audit Logs
+        function renderAuditLogs() {
+            const tbody = document.querySelector('#audit-table tbody');
+            const empty = document.getElementById('audit-empty');
+            
+            if (auditLogs.length === 0) {
+                tbody.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            
+            empty.classList.add('hidden');
+            tbody.innerHTML = '';
+            
+            auditLogs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge badge-info">${log.action || 'ACTION'}</span></td>
+                    <td>${log.details || '-'}</td>
+                    <td>${log.user || 'system'}</td>
+                    <td>${log.device || '-'}</td>
+                    <td>${formatDate(log.timestamp)}</td>
+                    <td>
+                        <button class="action-btn" onclick="viewAuditLog(${log.id})" title="Visualizar">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Render Sessions
+        function renderSessions() {
+            const tbody = document.querySelector('#sessions-table tbody');
+            const empty = document.getElementById('sessions-empty');
+            
+            if (sessions.length === 0) {
+                tbody.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            
+            empty.classList.add('hidden');
+            tbody.innerHTML = '';
+            
+            sessions.forEach(session => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge ${session.status === 'active' ? 'badge-success' : 'badge-warning'}">${session.status || 'completed'}</span></td>
+                    <td><strong>${session.device_name || '-'}</strong></td>
+                    <td>${session.user || 'admin'}</td>
+                    <td>${formatDate(session.started_at)}</td>
+                    <td>${formatDuration(session.duration_seconds)}</td>
+                    <td>
+                        <button class="action-btn" onclick="viewSession('${session.session_id}')" title="Visualizar">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn" onclick="downloadSession('${session.session_id}')" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Show Audit Tab
+        function showAuditTab(tab) {
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('audit-logs').classList.toggle('hidden', tab !== 'logs');
+            document.getElementById('audit-sessions').classList.toggle('hidden', tab !== 'sessions');
+        }
+
+        // Device Modal
+        function openDeviceModal() {
+            document.getElementById('device-modal-title').textContent = 'Novo Dispositivo';
+            document.getElementById('device-form').reset();
+            document.getElementById('device-id').value = '';
+            document.getElementById('device-modal').classList.remove('hidden');
+        }
+
+        function closeDeviceModal() {
+            document.getElementById('device-modal').classList.add('hidden');
+        }
+
+        function editDevice(id) {
+            const device = devices.find(d => d.id === id);
+            if (!device) return;
+
+            document.getElementById('device-modal-title').textContent = 'Editar Dispositivo';
+            document.getElementById('device-id').value = device.id;
+            document.getElementById('device-name').value = device.hostname || '';
+            document.getElementById('device-ip').value = device.ip_address || '';
+            document.getElementById('device-type').value = device.is_bras ? 'bras' : (device.device_type || 'router');
+            document.getElementById('device-vendor').value = device.vendor || '';
+            document.getElementById('device-ssh-user').value = device.ssh_user || '';
+            document.getElementById('device-ssh-password').value = device.ssh_password || '';
+            document.getElementById('device-ssh-port').value = device.ssh_port || 22;
+            document.getElementById('device-snmp-community').value = device.snmp_community || '';
+            document.getElementById('device-snmp-port').value = device.snmp_port || 161;
+            document.getElementById('device-backup-enabled').checked = device.backup_enabled !== false;
+
+            document.getElementById('device-modal').classList.remove('hidden');
+        }
+
+        async function saveDevice() {
+            const id = document.getElementById('device-id').value;
+            const data = {
+                id: id ? parseInt(id) : null,
+                hostname: document.getElementById('device-name').value,
+                ip_address: document.getElementById('device-ip').value,
+                device_type: document.getElementById('device-type').value,
+                is_bras: document.getElementById('device-type').value === 'bras',
+                vendor: document.getElementById('device-vendor').value,
+                ssh_user: document.getElementById('device-ssh-user').value,
+                ssh_password: document.getElementById('device-ssh-password').value,
+                ssh_port: parseInt(document.getElementById('device-ssh-port').value) || 22,
+                snmp_community: document.getElementById('device-snmp-community').value,
+                snmp_port: parseInt(document.getElementById('device-snmp-port').value) || 161,
+                backup_enabled: document.getElementById('device-backup-enabled').checked,
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/devices/save/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.status === 'success') {
+                    closeDeviceModal();
+                    loadDevices();
+                    alert(id ? 'Dispositivo atualizado!' : 'Dispositivo criado!');
+                } else {
+                    alert('Erro: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (err) {
+                alert('Erro ao salvar dispositivo');
+            }
+        }
+
+        // Delete Device
+        function deleteDevice(id) {
+            const device = devices.find(d => d.id === id);
+            document.getElementById('delete-message').textContent = `Tem certeza que deseja excluir o dispositivo "${device?.hostname}"?`;
+            deleteCallback = async () => {
+                await fetch(`${API_BASE}/devices/delete/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                loadDevices();
+            };
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        // Backup Functions
+        async function viewBackup(id) {
+            currentBackupId = id;
+            const backup = backups.find(b => b.id === id);
+            document.getElementById('backup-view-title').textContent = backup?.filename || 'Backup';
+            
+            try {
+                const res = await fetch(`${API_BASE}/backups/download/?id=${id}`);
+                const text = await res.text();
+                document.getElementById('backup-content').textContent = text;
+            } catch (err) {
+                document.getElementById('backup-content').textContent = 'Erro ao carregar conteúdo';
+            }
+            
+            document.getElementById('backup-view-modal').classList.remove('hidden');
+        }
+
+        function closeBackupViewModal() {
+            document.getElementById('backup-view-modal').classList.add('hidden');
+        }
+
+        function downloadBackup() {
+            if (currentBackupId) {
+                downloadBackupById(currentBackupId);
+            }
+        }
+
+        function downloadBackupById(id) {
+            window.open(`${API_BASE}/backups/download/?id=${id}`, '_blank');
+        }
+
+        function deleteBackup(id) {
+            const backup = backups.find(b => b.id === id);
+            document.getElementById('delete-message').textContent = `Tem certeza que deseja excluir o backup "${backup?.filename}"?`;
+            deleteCallback = async () => {
+                await fetch(`${API_BASE}/backups/delete/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                loadBackups();
+            };
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        // Run Backup
+        async function runBackup(deviceId) {
+            try {
+                const res = await fetch(`${API_BASE}/devices/backup/run/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ device_id: deviceId })
+                });
+                const result = await res.json();
+                alert(result.status === 'success' ? 'Backup iniciado!' : 'Erro: ' + result.error);
+            } catch (err) {
+                alert('Erro ao executar backup');
+            }
+        }
+
+        // Delete Modal
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+            deleteCallback = null;
+        }
+
+        async function confirmDelete() {
+            if (deleteCallback) {
+                await deleteCallback();
+            }
+            closeDeleteModal();
+        }
+
+        // Terminal Functions
+        function openTerminalModal() {
+            document.getElementById('terminal-modal').classList.remove('hidden');
+        }
+
+        function closeTerminalModal() {
+            document.getElementById('terminal-modal').classList.add('hidden');
+            disconnectTerminal();
+        }
+
+        function openTerminal(deviceId) {
+            const device = devices.find(d => d.id === deviceId);
+            if (device) {
+                document.getElementById('terminal-device-select').value = deviceId;
+                openTerminalModal();
+            }
+        }
+
+        function updateTerminalDeviceSelect() {
+            const select = document.getElementById('terminal-device-select');
+            select.innerHTML = '<option value="">Selecione um dispositivo...</option>';
+            devices.filter(d => d.ssh_user).forEach(device => {
+                select.innerHTML += `<option value="${device.id}">${device.hostname} (${device.ip_address})</option>`;
+            });
+        }
+
+        function connectTerminal() {
+            const deviceId = document.getElementById('terminal-device-select').value;
+            if (!deviceId) {
+                alert('Selecione um dispositivo');
+                return;
+            }
+
+            const device = devices.find(d => d.id === parseInt(deviceId));
+            if (!device) return;
+
+            terminalLog = [];
+            document.getElementById('terminal-status').textContent = 'Conectando...';
+            document.getElementById('terminal-status').className = 'badge badge-warning';
+            document.getElementById('btn-disconnect').disabled = false;
+            document.getElementById('terminal-info').textContent = `${device.hostname} - ${device.ip_address}:${device.ssh_port || 22}`;
+
+            // Update terminal container
+            const container = document.getElementById('terminal-container');
+            container.innerHTML = `
+                <div style="padding: 20px; color: #22c55e; font-family: monospace;">
+                    <div style="color: #3b82f6; margin-bottom: 16px;">╔═══════════════════════════════════════════════════════════════╗</div>
+                    <div style="color: #3b82f6; margin-bottom: 8px;">║  LOR-CGR Terminal SSH - ${device.hostname}</div>
+                    <div style="color: #3b82f6; margin-bottom: 16px;">╚═══════════════════════════════════════════════════════════════╝</div>
+                    <div style="color: #22c55e;">✓ Conectado a ${device.hostname}</div>
+                    <div style="color: #64748b;">  IP: ${device.ip_address}:${device.ssh_port || 22}</div>
+                    <div style="color: #64748b;">  Usuário: ${device.ssh_user}</div>
+                    <div style="color: #64748b;">  Protocolo: ${device.protocol || 'ssh'}</div>
+                    <br>
+                    <div style="color: #eab308;">⚠ Conexão WebSocket simulada - Configure o WebSocket server para funcionalidade completa</div>
+                </div>
+            `;
+
+            document.getElementById('terminal-status').textContent = 'Conectado';
+            document.getElementById('terminal-status').className = 'badge badge-success';
+        }
+
+        function disconnectTerminal() {
+            if (terminalWS) {
+                terminalWS.close();
+                terminalWS = null;
+            }
+            document.getElementById('terminal-status').textContent = 'Desconectado';
+            document.getElementById('terminal-status').className = 'badge badge-warning';
+            document.getElementById('btn-disconnect').disabled = true;
+            document.getElementById('terminal-info').textContent = '';
+        }
+
+        function toggleFullscreenTerminal() {
+            const modal = document.querySelector('#terminal-modal .modal-content');
+            modal.classList.toggle('terminal-modal');
+            if (!modal.classList.contains('terminal-modal')) {
+                modal.style.width = '100vw';
+                modal.style.height = '100vh';
+            } else {
+                modal.style.width = '90vw';
+                modal.style.height = '85vh';
+            }
+        }
+
+        function downloadTerminalLog() {
+            const content = terminalLog.join('\n');
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `terminal-session-${Date.now()}.log`;
+            a.click();
+        }
+
+        // View Session
+        async function viewSession(sessionId) {
+            try {
+                const res = await fetch(`${API_BASE}/terminal/sessions/${sessionId}/log/`);
+                const data = await res.json();
+                alert('Conteúdo da sessão:\n' + (data.log || 'Sem conteúdo'));
+            } catch (err) {
+                alert('Erro ao carregar sessão');
+            }
+        }
+
+        function downloadSession(sessionId) {
+            window.open(`${API_BASE}/terminal/sessions/${sessionId}/download/`, '_blank');
+        }
+
+        // Export Audit CSV
+        function exportAuditCSV() {
+            if (auditLogs.length === 0) {
+                alert('Nenhum log para exportar');
+                return;
+            }
+
+            const headers = ['ID', 'Data/Hora', 'Usuário', 'Ação', 'Dispositivo', 'Detalhes'];
+            const rows = auditLogs.map(log => [
+                log.id,
+                formatDate(log.timestamp),
+                log.user || 'system',
+                log.action,
+                log.device || '-',
+                `"${(log.details || '').replace(/"/g, '""')}"`
+            ]);
+
+            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        // Helper Functions
+        function formatSize(bytes) {
+            if (!bytes) return '0 B';
+            if (bytes < 1024) return `${bytes} B`;
+            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return '-';
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        }
+
+        // Refresh Data
+        function refreshData() {
+            loadDevices();
+            loadBackups();
+            loadAuditLogs();
+        }
+    </script>
+</body>
+</html>
