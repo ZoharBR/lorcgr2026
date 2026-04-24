@@ -187,3 +187,13 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# TEMPORÁRIO: Permitir acesso sem autenticação para testes
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # MUDAR PARA IsAuthenticated EM PRODUÇÃO
+    ],
+}
