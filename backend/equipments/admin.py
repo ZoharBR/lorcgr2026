@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Equipment, EquipmentStatus, PingHistory
+from .models import Equipment, EquipmentInterface, SyncLog, EquipmentStatus, PingHistory
 
 
 @admin.register(Equipment)
@@ -23,3 +23,16 @@ class PingHistoryAdmin(admin.ModelAdmin):
     list_display = ['equipment', 'latency_ms', 'success', 'timestamp']
     list_filter = ['success', 'equipment']
     date_hierarchy = 'timestamp'
+
+
+@admin.register(EquipmentInterface)
+class EquipmentInterfaceAdmin(admin.ModelAdmin):
+    list_display = ['equipment', 'name', 'ip_address', 'status']
+    list_filter = ['status']
+
+
+@admin.register(SyncLog)
+class SyncLogAdmin(admin.ModelAdmin):
+    list_display = ['equipment', 'system', 'action', 'status', 'created_at']
+    list_filter = ['system', 'status']
+    readonly_fields = ['created_at']
